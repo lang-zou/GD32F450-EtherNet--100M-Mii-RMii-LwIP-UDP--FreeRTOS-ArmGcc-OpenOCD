@@ -1,0 +1,31 @@
+# Build output
+build/
+*.o
+*.d
+*.elf
+*.hex
+*.bin
+*.map
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code local settings
+.claude/
+
+# Cursor IDE
+.cursor/
+
+# Tool & firmware archives (large, not part of source)
+download/
+
+# Code intelligence index
+.codegraph/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,17 @@
+# GDB initialization script
+# Usage: arm-none-eabi-gdb -x scripts/gdb/gdbinit build/firmware.elf
+
+# Connect to OpenOCD GDB server (default port 3333)
+target extended-remote localhost:3333
+
+# Reset and halt the target
+monitor reset halt
+
+# Load firmware to flash
+monitor flash write_image erase build/firmware.hex
+
+# Reset and halt again after programming
+monitor reset halt
+
+# Display basic info
+monitor reg pc sp lr
