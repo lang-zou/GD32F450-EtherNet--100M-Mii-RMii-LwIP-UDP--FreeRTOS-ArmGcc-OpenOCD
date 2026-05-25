@@ -1,12 +1,3 @@
-# Build output
-build/
-*.o
-*.d
-*.elf
-*.hex
-*.bin
-*.map
-
 # IDE
 .vscode/
 .idea/
@@ -19,9 +10,6 @@ build/
 
 # Cursor IDE
 .cursor/
-
-# Tool & firmware archives (large, not part of source)
-download/
 
 # Code intelligence index
 .codegraph/
