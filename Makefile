@@ -121,6 +121,7 @@ C_SRCS    += $(SRC_DIR)/middleware/freertos/heap_4.c
 
 # LwIP (UDP-only subset)
 C_SRCS    += $(SRC_DIR)/middleware/lwip/core/init.c
+C_SRCS    += $(SRC_DIR)/middleware/lwip/core/ip.c
 C_SRCS    += $(SRC_DIR)/middleware/lwip/core/def.c
 C_SRCS    += $(SRC_DIR)/middleware/lwip/core/mem.c
 C_SRCS    += $(SRC_DIR)/middleware/lwip/core/memp.c
@@ -256,9 +257,9 @@ format:
 	@echo "Done."
 
 # ── Unit Tests (Host PC) ─────────────────────────────────────────────────────
-HOST_CC      = /d/tools/mingw64/mingw64/bin/gcc
+HOST_CC      = D:/tools/mingw64/mingw64/bin/gcc
 HOST_CFLAGS  = -Wall -Wextra -g -std=c11
-HOST_CFLAGS += -I$(CONFIG_DIR) -Isrc/utils -Itests/unity
+HOST_CFLAGS += -I$(CONFIG_DIR) -Isrc/utils -Isrc/app/boot -Isrc/app/ota -Itests/unity
 
 TEST_DEPS    = tests/unity/unity.c src/utils/crc32.c src/utils/ringbuf.c
 
@@ -267,7 +268,7 @@ test:
 	@echo "$(BOLD)[TEST]$(RESET) Building and running unit tests..."
 	@mkdir -p $(BUILD_DIR)
 	@failed=0; \
-	for test_src in tests/unit/test_crc32.c tests/unit/test_ringbuf.c; do \
+	for test_src in tests/unit/test_crc32.c tests/unit/test_ringbuf.c tests/unit/test_boot.c tests/unit/test_ota.c; do \
 		name=$$(basename $$test_src .c); \
 		echo "  [$$name]"; \
 		$(HOST_CC) $(HOST_CFLAGS) $(TEST_DEPS) $$test_src -o $(BUILD_DIR)/$$name.exe; \

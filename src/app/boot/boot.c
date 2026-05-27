@@ -103,16 +103,15 @@ void boot_clear_ota_flag(void)
  * Reads the first bytes of the app area and checks for non-0xFF content
  * as a simplified validity check. Full CRC verification can be added.
  *===========================================================================*/
-bool boot_is_app_valid(void)
+/*===========================================================================
+ * Pure header validation (testable without flash access)
+ * Checks stack pointer range and reset vector validity.
+ *===========================================================================*/
+bool boot_validate_header(const uint8_t *buf, uint32_t app_base)
 {
-    uint8_t buf[APP_HEADER_CHECK_SIZE];
-    uint32_t app_base = FLASH_APP_BASE;
-
-    flash_read_buf(app_base, buf, sizeof(buf));
-
     /* Check if the app area has been programmed (not all 0xFF) */
     bool has_content = false;
-    for (uint32_t i = 0; i < sizeof(buf); i++)
+    for (uint32_t i = 0; i < APP_HEADER_CHECK_SIZE; i++)
     {
         if (buf[i] != 0xFF)
         {
@@ -123,25 +122,31 @@ bool boot_is_app_valid(void)
 
     if (!has_content)
     {
-        LOG_W("boot_is_app_valid: App area is empty (all 0xFF)");
         return false;
     }
 
     /* Check for valid stack pointer (within SRAM range: 0x20000000-0x20020000) */
-    uint32_t sp = *(uint32_t *)&buf[0];
+    uint32_t sp = *(const uint32_t *)&buf[0];
     if (sp < 0x20000000UL || sp > 0x20020000UL)
     {
-        LOG_W("boot_is_app_valid: Invalid stack pointer 0x%08lX", sp);
         return false;
     }
 
-    /* Check for valid reset vector (within flash range) */
-    uint32_t pc = *(uint32_t *)&buf[4];
+    /* Check for valid reset vector (within flash range, Thumb bit set) */
+    uint32_t pc = *(const uint32_t *)&buf[4];
     if ((pc & 1) == 0 || pc < app_base || pc > (app_base + FLASH_APP_SIZE))
     {
-        LOG_W("boot_is_app_valid: Invalid reset vector 0x%08lX", pc);
         return false;
     }
 
     return true;
+}
+
+bool boot_is_app_valid(void)
+{
+    uint8_t buf[APP_HEADER_CHECK_SIZE];
+    uint32_t app_base = FLASH_APP_BASE;
+
+    flash_read_buf(app_base, buf, sizeof(buf));
+    return boot_validate_header(buf, app_base);
 }

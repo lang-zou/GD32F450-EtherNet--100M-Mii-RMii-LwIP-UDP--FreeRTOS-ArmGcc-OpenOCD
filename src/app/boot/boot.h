@@ -54,8 +54,18 @@ void boot_set_ota_flag(void);
 void boot_clear_ota_flag(void);
 
 /**
+ * @brief Validate Cortex-M4 vector table header without flash access
+ * Checks: non-empty (not all 0xFF), valid SP in SRAM, valid PC with Thumb bit
+ * @param buf      256-byte buffer from app flash base
+ * @param app_base Base address of app area
+ * @return true if header appears valid
+ */
+bool boot_validate_header(const uint8_t *buf, uint32_t app_base);
+
+/**
  * @brief Check if the application code area has a valid firmware image
- * @return true if app CRC matches
+ * Reads flash via flash_read_buf() and calls boot_validate_header().
+ * @return true if app area contains valid firmware
  */
 bool boot_is_app_valid(void);
 

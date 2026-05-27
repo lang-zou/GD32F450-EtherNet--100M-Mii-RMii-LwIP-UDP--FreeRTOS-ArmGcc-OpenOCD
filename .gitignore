@@ -21,3 +21,6 @@ download/winlibs-x86_64-gcc.zip
 # OS
 .DS_Store
 Thumbs.db
+
+# Build artifacts
+build/

@@ -66,6 +66,10 @@ void board_clock_init(void)
 
     /* Update SystemCoreClock variable */
     SystemCoreClock = SYSTEM_CLOCK;
+
+    /* Enable DWT cycle counter once for all delay functions */
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 }
 
 /*===========================================================================
@@ -89,8 +93,6 @@ void board_periph_init(void)
     rcu_periph_clock_enable(RCU_SYSCFG);
     rcu_periph_clock_enable(RCU_PMU);
 
-    /* Enable SYSCFG clock for interrupt configuration */
-    rcu_periph_clock_enable(RCU_SYSCFG);
 }
 
 /*===========================================================================
@@ -100,12 +102,6 @@ void board_periph_init(void)
 void board_delay_us(uint32_t us)
 {
     if (0U == us) return;
-
-    /* Enable DWT cycle counter */
-    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-    DWT->CTRL &= ~DWT_CTRL_CYCCNTENA_Msk;
-    DWT->CYCCNT = 0;
-    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 
     uint32_t ticks = us * (SystemCoreClock / 1000000U);
     uint32_t start = DWT->CYCCNT;
