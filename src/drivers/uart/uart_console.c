@@ -5,6 +5,7 @@
 
 #include "uart_console.h"
 #include "ringbuf.h"
+#include <string.h>
 
 /* RX ring buffer: 1 KB for console input */
 #define CONSOLE_RX_BUF_SIZE 1024
@@ -57,37 +58,38 @@ void uart_console_init(uint32_t baudrate)
 /*===========================================================================
  * TX (Blocking — used during init and from task context)
  *===========================================================================*/
+/* UART TX timeout in polling loops (prevents deadlock) */
+#define UART_TX_TIMEOUT 0xFFFFFFUL
+
 void uart_console_send(const uint8_t *data, uint32_t len)
 {
     for (uint32_t i = 0; i < len; i++)
     {
+        uint32_t timeout = UART_TX_TIMEOUT;
         while (RESET == usart_flag_get(CONSOLE_USART, USART_FLAG_TBE))
         {
-            /* Wait for TX buffer empty */
+            if (--timeout == 0)
+            {
+                return;  /* Hardware fault — abort TX */
+            }
         }
         usart_data_transmit(CONSOLE_USART, data[i]);
     }
 
     /* Wait for transmission complete */
+    uint32_t timeout = UART_TX_TIMEOUT;
     while (RESET == usart_flag_get(CONSOLE_USART, USART_FLAG_TC))
     {
-        /* Wait for TX complete */
+        if (--timeout == 0)
+        {
+            return;  /* Hardware fault — abort */
+        }
     }
 }
 
 void uart_console_send_str(const char *str)
 {
-    while (*str)
-    {
-        while (RESET == usart_flag_get(CONSOLE_USART, USART_FLAG_TBE))
-        {
-        }
-        usart_data_transmit(CONSOLE_USART, (uint8_t)*str++);
-    }
-
-    while (RESET == usart_flag_get(CONSOLE_USART, USART_FLAG_TC))
-    {
-    }
+    uart_console_send((const uint8_t *)str, strlen(str));
 }
 
 bool uart_console_tx_done(void)

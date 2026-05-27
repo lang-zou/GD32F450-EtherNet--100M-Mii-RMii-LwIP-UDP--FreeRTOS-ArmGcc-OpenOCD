@@ -17,6 +17,7 @@
 #include "cli.h"
 #include "cli_cmds_ext.h"
 #include "uart_console.h"
+#include "eth_mac.h"
 #include "log.h"
 #include "app_config.h"
 
@@ -128,6 +129,16 @@ int main(void)
         board_periph_init();
         uart_console_init(CONSOLE_BAUDRATE);
         LOG_I("Entering bootloader mode...");
+
+        /* Initialize Ethernet for OTA firmware reception */
+#if (ETH_PHY_MODE == ETH_PHY_RMII)
+        eth_mac_init(ETH_MAC_MODE_RMII);
+#else
+        eth_mac_init(ETH_MAC_MODE_MII);
+#endif
+
+        /* Initialize LwIP netif for bootloader */
+        ota_network_init();
 
         ota_bootloader_entry();
 
